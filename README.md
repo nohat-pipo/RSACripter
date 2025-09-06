@@ -546,10 +546,7 @@ Ao reportar bugs, inclua:
 - **Comportamento esperado vs observado**
 
 ## 🆘 Suporte
-
-- 📫 **Issues**: [GitHub Issues](https://github.com/seu-usuario/rsa-password-manager/issues)
 - 📖 **Documentação**: [cryptography.io](https://cryptography.io/en/latest/)
-- 💬 **Discussões**: [GitHub Discussions](https://github.com/seu-usuario/rsa-password-manager/discussions)
 
 ## 🏆 Reconhecimentos
 
