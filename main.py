@@ -1,4 +1,4 @@
-from RSACripterTest import *
+from RSACripter import *
 # --- Exemplo de uso ---
 if __name__ == "__main__":
     # Configuração dos usuários
