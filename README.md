@@ -1,295 +1,564 @@
 # RSACripter
-# Sistema de Gerenciamento Seguro de Senhas com RSA
+# RSA Password Manager
 
-Um sistema de gerenciamento de senhas que utiliza criptografia RSA para proteger credenciais de usuários de forma hierárquica e segura.
+Um sistema profissional de gerenciamento de senhas orientado a objetos que utiliza criptografia RSA para proteger credenciais de usuários através de uma arquitetura hierárquica e modular.
 
 ## 📋 Índice
 
-- [Descrição](#descrição)
-- [Características](#características)
-- [Arquitetura de Segurança](#arquitetura-de-segurança)
+- [Visão Geral](#visão-geral)
+- [Arquitetura](#arquitetura)
 - [Instalação](#instalação)
-- [Uso](#uso)
+- [Guia de Uso](#guia-de-uso)
+- [API Reference](#api-reference)
+- [Exemplos Práticos](#exemplos-práticos)
 - [Estrutura de Arquivos](#estrutura-de-arquivos)
-- [Exemplos](#exemplos)
 - [Segurança](#segurança)
-- [Limitações](#limitações)
+- [Testes](#testes)
 - [Contribuição](#contribuição)
 
-## 📖 Descrição
+## 🎯 Visão Geral
 
-Este sistema implementa uma solução de gerenciamento de senhas baseada em criptografia RSA de dupla camada:
+O **RSA Password Manager** é uma solução completa para gerenciamento seguro de senhas que implementa:
 
-1. **Chaves Mestras**: Par de chaves RSA usado para criptografar/descriptografar senhas dos usuários
-2. **Chaves de Usuário**: Chaves RSA individuais protegidas pelas senhas originais dos usuários
+- **Arquitetura Modular**: Classes especializadas para cada funcionalidade
+- **Criptografia RSA Dupla Camada**: Chaves mestras + chaves individuais por usuário
+- **Gerenciamento Automatizado**: Criação, armazenamento e recuperação automática de chaves
+- **Interface Intuitiva**: API orientada a objetos fácil de usar e integrar
+- **Testes Integrados**: Sistema de verificação de integridade automático
 
-O sistema permite armazenar senhas de forma criptografada e recuperá-las quando necessário, mantendo a segurança através de múltiplas camadas de proteção.
+### Características Principais
 
-## ✨ Características
+✅ **RSA 4096 bits** por padrão (configurável)  
+✅ **Orientação a Objetos** com separação de responsabilidades  
+✅ **Type Hints** completos para melhor desenvolvimento  
+✅ **Gerenciamento Automático** de arquivos e diretórios  
+✅ **Testes de Integridade** integrados  
+✅ **Recuperação Segura** de credenciais  
+✅ **Suporte a Lotes** para múltiplos usuários  
+✅ **Interface Limpa** e documentação completa  
 
-- **Criptografia RSA 4096 bits** por padrão (configurável)
-- **Dupla camada de proteção**: chaves mestras + chaves individuais
-- **Armazenamento seguro** de senhas criptografadas
-- **Recuperação automática** de credenciais
-- **Geração automática** de pares de chaves
-- **Testes de integridade** incluídos
-- **Organização temporal** de arquivos
-- **Suporte a múltiplos usuários**
+## 🏗️ Arquitetura
 
-## 🔐 Arquitetura de Segurança
+O sistema é composto por 4 classes principais:
 
-### Camada 1: Chaves Mestras
+### 📦 Classes do Sistema
+
+```python
+RSAKeyManager          # Gerencia chaves mestras RSA
+PasswordCrypto         # Criptografia/descriptografia de senhas
+UserKeyGenerator       # Gera e gerencia chaves de usuários
+RSAPasswordManager     # Classe principal que orquestra o sistema
 ```
-Senha do Usuário → [Chave Pública Mestra] → Senha Criptografada
-Senha Criptografada → [Chave Privada Mestra] → Senha Original
+
+### 🔄 Fluxo de Dados
+
+```
+[Usuario] → [RSAPasswordManager]
+    ↓
+[PasswordCrypto] → [Senha Criptografada] → [JSON]
+    ↓
+[UserKeyGenerator] → [Chaves RSA do Usuario] → [PEM Files]
+    ↓
+[RSAKeyManager] → [Chaves Mestras] → [Master PEM Files]
 ```
 
-### Camada 2: Chaves Individuais
-```
-Senha Original → [Proteção da Chave Privada Individual] → Chave RSA do Usuário
-```
+### 🔐 Segurança em Camadas
 
-### Fluxo de Segurança
-1. As senhas dos usuários são criptografadas com a chave pública mestra
-2. As chaves privadas individuais são protegidas com as senhas originais
-3. Para acessar recursos do usuário, é necessário:
-   - Descriptografar a senha usando a chave privada mestra
-   - Usar a senha descriptografada para desbloquear a chave privada individual
+**Camada 1: Chaves Mestras**
+- Criptografam/descriptografam senhas dos usuários
+- Armazenadas como `chave_mestre_*.pem`
+
+**Camada 2: Chaves de Usuário**
+- Protegidas pelas senhas originais dos usuários
+- Uma chave RSA única por usuário
+- Usadas para operações específicas (assinatura, etc.)
 
 ## 🚀 Instalação
 
 ### Pré-requisitos
 
 ```bash
-pip install cryptography
+pip install cryptography typing
 ```
 
-### Instalação do Projeto
+### Configuração
 
 ```bash
 git clone <seu-repositorio>
-cd sistema-gerenciamento-senhas
+cd rsa-password-manager
 ```
 
-## 💻 Uso
+## 💻 Guia de Uso
 
-### 1. Configuração Básica
+### 🎬 Uso Básico
 
 ```python
-from sistema_senhas import *
+from rsa_password_manager import RSAPasswordManager
 
-# Definir usuários e senhas
+# 1. Inicializar sistema
+pm = RSAPasswordManager(master_key_size=4096, user_key_size=4096)
+pm.setup_system()
+
+# 2. Definir usuários
 usuarios = [
     {'nome': 'alice', 'senha': 'senha123'},
-    {'nome': 'bob', 'senha': 'minhasenha456'},
-    {'nome': 'carol', 'senha': 'senhasegura789'}
+    {'nome': 'bob', 'senha': 'minhasenha456'}
 ]
 
-# Gerar sistema completo
-info_usuarios, diretorio, senhas_criptografadas = gerar_chaves_usuarios_com_senhas_criptografadas(usuarios)
+# 3. Criar usuários em lote
+diretorio = pm.create_users_batch(usuarios)
+
+# 4. Recuperar senha de usuário
+senha_alice = pm.recover_user_password('alice')
+
+# 5. Carregar chave privada do usuário
+chave_alice = pm.load_user_key('alice')
 ```
 
-### 2. Recuperar Senha de Usuário
+### ⚙️ Configuração Avançada
 
 ```python
-# Recuperar senha original descriptografada
-senha_alice = recuperar_senha_usuario('alice', diretorio)
-print(f"Senha da Alice: {senha_alice}")
+# Sistema com chaves menores para desenvolvimento
+pm_dev = RSAPasswordManager(master_key_size=2048, user_key_size=2048)
+
+# Sistema ultra-seguro para produção
+pm_prod = RSAPasswordManager(master_key_size=8192, user_key_size=4096)
 ```
 
-### 3. Testar Sistema
+## 📚 API Reference
+
+### 🔑 RSAPasswordManager
+
+**Classe principal do sistema**
+
+#### `__init__(master_key_size=4096, user_key_size=4096)`
+Inicializa o gerenciador de senhas.
+
+#### `setup_system() -> None`
+Configura o sistema carregando ou gerando chaves mestras.
+
+#### `create_users_batch(users_config: List[Dict]) -> str`
+Cria múltiplos usuários em lote.
+- **users_config**: `[{'nome': 'user', 'senha': 'pass'}, ...]`
+- **Returns**: Diretório onde as chaves foram salvas
+
+#### `recover_user_password(username: str, keys_directory=None) -> str`
+Recupera a senha descriptografada de um usuário.
+
+#### `load_user_key(username: str, keys_directory=None) -> RSAPrivateKey`
+Carrega a chave privada de um usuário.
+
+#### `test_user_system(username: str, keys_directory=None) -> bool`
+Testa o sistema completo para um usuário.
+
+#### `list_users(keys_directory=None) -> List[str]`
+Lista todos os usuários disponíveis.
+
+#### `get_system_info() -> Dict`
+Retorna informações detalhadas do sistema.
+
+### 🏭 RSAKeyManager
+
+**Gerencia chaves mestras**
 
 ```python
-# Testar integridade completa do sistema
-testar_recuperacao_senha('alice', diretorio)
+km = RSAKeyManager(key_size=4096)
+private_key, public_key = km.load_master_keys()
 ```
 
-### 4. Uso Manual das Funções
+### 🔐 PasswordCrypto
+
+**Criptografia de senhas**
 
 ```python
-# Gerar chaves mestras manualmente
-private_key, public_key = gerar_par_chaves_mestre()
-
-# Criptografar senha específica
-senha_criptografada = criptografar_senha("minhasenha", public_key)
-
-# Descriptografar senha
-senha_original = descriptografar_senha(senha_criptografada, private_key)
+pc = PasswordCrypto(key_manager)
+encrypted = pc.encrypt_password("minha_senha")
+decrypted = pc.decrypt_password(encrypted)
 ```
 
-## 📁 Estrutura de Arquivos
+### 👤 UserKeyGenerator
 
-Após a execução, o sistema cria a seguinte estrutura:
+**Gera chaves de usuários**
 
-```
-projeto/
-├── sistema_senhas.py                 # Código principal
-├── chave_mestre_private.pem         # Chave privada mestra
-├── chave_mestre_public.pem          # Chave pública mestra
-└── usuarios_chaves_YYYYMMDD_HHMMSS/ # Diretório timestampado
-    ├── senhas_criptografadas.json   # Senhas criptografadas
-    ├── alice_private.pem            # Chave privada da Alice
-    ├── alice_public.pem             # Chave pública da Alice
-    ├── bob_private.pem              # Chave privada do Bob
-    ├── bob_public.pem               # Chave pública do Bob
-    └── ...
+```python
+ukg = UserKeyGenerator(key_size=4096)
+private_key, public_key = ukg.generate_user_key_pair("senha")
 ```
 
-### Arquivo `senhas_criptografadas.json`
+## 🛠️ Exemplos Práticos
 
-```json
-{
-    "alice": "base64_encrypted_password_here",
-    "bob": "base64_encrypted_password_here",
-    "carol": "base64_encrypted_password_here"
-}
-```
-
-## 🔧 Exemplos
-
-### Exemplo Completo de Uso
+### 📝 Exemplo Completo
 
 ```python
 #!/usr/bin/env python3
-
-from sistema_senhas import *
+from rsa_password_manager import RSAPasswordManager
 
 def main():
-    # 1. Definir usuários
+    # Configurar usuários
     usuarios = [
-        {'nome': 'admin', 'senha': 'admin123!@#'},
-        {'nome': 'user1', 'senha': 'password456'},
-        {'nome': 'user2', 'senha': 'mypassword789'}
+        {'nome': 'admin', 'senha': 'admin_super_secret_2024'},
+        {'nome': 'api_service', 'senha': 'service_key_production'},
+        {'nome': 'backup_user', 'senha': 'backup_secure_password'},
+        {'nome': 'monitoring', 'senha': 'monitor_system_access'}
     ]
     
-    print("=== Sistema de Gerenciamento de Senhas ===\n")
+    print("🔐 RSA Password Manager - Sistema Empresarial")
+    print("=" * 50)
     
-    # 2. Gerar sistema completo
-    print("1. Gerando chaves e criptografando senhas...")
-    info_usuarios, diretorio, senhas_cripto = gerar_chaves_usuarios_com_senhas_criptografadas(usuarios)
+    # 1. Inicializar sistema
+    pm = RSAPasswordManager(master_key_size=4096, user_key_size=4096)
+    pm.setup_system()
     
-    # 3. Demonstrar recuperação
-    print("\n2. Testando recuperação de senhas...")
-    for usuario in usuarios:
-        nome = usuario['nome']
-        senha_original = usuario['senha']
+    # 2. Criar usuários
+    print(f"\n📁 Criando {len(usuarios)} usuários...")
+    diretorio = pm.create_users_batch(usuarios)
+    
+    # 3. Verificar sistema
+    print(f"\n📊 Informações do Sistema:")
+    info = pm.get_system_info()
+    for key, value in info.items():
+        print(f"  {key}: {value}")
+    
+    # 4. Listar usuários
+    users_list = pm.list_users()
+    print(f"\n👥 Usuários cadastrados:")
+    for user in users_list:
+        print(f"  - {user}")
+    
+    # 5. Testes de integridade
+    print(f"\n🧪 Executando testes de integridade...")
+    for user in users_list:
+        success = pm.test_user_system(user)
+        status = "✅ OK" if success else "❌ ERRO"
+        print(f"  {user}: {status}")
+    
+    # 6. Demonstração de uso
+    print(f"\n💡 Demonstração de recuperação:")
+    try:
+        senha_admin = pm.recover_user_password('admin')
+        print(f"  Senha do admin recuperada: {senha_admin}")
         
-        # Recuperar senha
-        senha_recuperada = recuperar_senha_usuario(nome, diretorio)
+        chave_admin = pm.load_user_key('admin')
+        print(f"  Chave privada do admin carregada: {type(chave_admin).__name__}")
         
-        # Verificar se bate
-        if senha_original == senha_recuperada:
-            print(f"✓ {nome}: Senha recuperada com sucesso")
-        else:
-            print(f"✗ {nome}: ERRO na recuperação")
+    except Exception as e:
+        print(f"  Erro: {e}")
     
-    # 4. Testes de integridade
-    print("\n3. Executando testes de integridade...")
-    for usuario in usuarios:
-        testar_recuperacao_senha(usuario['nome'], diretorio)
-    
-    print(f"\n✓ Sistema configurado em: {diretorio}")
+    print(f"\n✅ Sistema configurado com sucesso!")
+    print(f"📁 Localização: {diretorio}")
 
 if __name__ == "__main__":
     main()
 ```
 
-### Exemplo de Integração com Sistema Existente
+### 🔌 Integração com Sistema Existente
 
 ```python
-class SistemaAutenticacao:
-    def __init__(self, diretorio_chaves):
-        self.diretorio = diretorio_chaves
+class AuthenticationService:
+    """Serviço de autenticação usando RSA Password Manager"""
     
-    def autenticar_usuario(self, nome_usuario):
+    def __init__(self, keys_directory: str):
+        self.pm = RSAPasswordManager()
+        self.pm.setup_system()
+        self.keys_dir = keys_directory
+    
+    def authenticate_user(self, username: str) -> bool:
         """Autentica usuário recuperando sua senha"""
         try:
-            senha = recuperar_senha_usuario(nome_usuario, self.diretorio)
-            return self.validar_credenciais(nome_usuario, senha)
+            # Recuperar senha criptografada
+            password = self.pm.recover_user_password(username, self.keys_dir)
+            
+            # Validar contra sistema externo
+            return self.validate_external_auth(username, password)
+            
         except Exception as e:
-            print(f"Erro na autenticação: {e}")
+            print(f"Falha na autenticação de {username}: {e}")
             return False
     
-    def validar_credenciais(self, usuario, senha):
-        # Sua lógica de validação aqui
-        return True  # Exemplo
+    def get_user_signing_key(self, username: str):
+        """Obtém chave de assinatura do usuário"""
+        try:
+            return self.pm.load_user_key(username, self.keys_dir)
+        except Exception as e:
+            print(f"Erro ao carregar chave de {username}: {e}")
+            return None
+    
+    def validate_external_auth(self, username: str, password: str) -> bool:
+        # Implementar validação com sistema externo
+        return True  # Placeholder
+
+# Uso do serviço
+auth_service = AuthenticationService("usuarios_chaves_20241201_143022")
+
+if auth_service.authenticate_user("admin"):
+    signing_key = auth_service.get_user_signing_key("admin")
+    print("Usuário autenticado e chave obtida!")
+```
+
+### 🔄 Sistema de Rotação de Chaves
+
+```python
+class KeyRotationManager:
+    """Gerencia rotação periódica de chaves"""
+    
+    def __init__(self):
+        self.pm = RSAPasswordManager()
+    
+    def rotate_user_keys(self, username: str, old_keys_dir: str) -> str:
+        """Rotaciona chaves de um usuário específico"""
+        try:
+            # 1. Recuperar senha atual
+            current_password = self.pm.recover_user_password(username, old_keys_dir)
+            
+            # 2. Criar novo sistema
+            new_config = [{'nome': username, 'senha': current_password}]
+            new_keys_dir = self.pm.create_users_batch(new_config)
+            
+            # 3. Testar novo sistema
+            if self.pm.test_user_system(username, new_keys_dir):
+                print(f"✅ Chaves de {username} rotacionadas com sucesso")
+                return new_keys_dir
+            else:
+                raise Exception("Falha na validação das novas chaves")
+                
+        except Exception as e:
+            print(f"❌ Erro na rotação de chaves para {username}: {e}")
+            raise
 
 # Uso
-sistema = SistemaAutenticacao("usuarios_chaves_20241201_143022")
-if sistema.autenticar_usuario("alice"):
-    print("Usuário autenticado!")
+rotation_manager = KeyRotationManager()
+new_dir = rotation_manager.rotate_user_keys("admin", "usuarios_chaves_old")
+```
+
+## 📁 Estrutura de Arquivos
+
+```
+projeto/
+├── rsa_password_manager.py          # Código principal
+├── chave_mestre_private.pem         # Chave privada mestra
+├── chave_mestre_public.pem          # Chave pública mestra
+├── usuarios_chaves_20241201_143022/ # Diretório timestampado
+│   ├── senhas_criptografadas.json   # Senhas criptografadas
+│   ├── alice_private.pem            # Chave privada - Alice
+│   ├── alice_public.pem             # Chave pública - Alice
+│   ├── bob_private.pem              # Chave privada - Bob
+│   ├── bob_public.pem               # Chave pública - Bob
+│   └── ...                          # Outras chaves de usuários
+└── README.md                        # Este arquivo
+```
+
+### 📄 Formato do arquivo `senhas_criptografadas.json`
+
+```json
+{
+    "alice": "LS0tLS1CRUdJTi...base64_encrypted_password",
+    "bob": "QklOQVRFREZJTEU...base64_encrypted_password",
+    "admin": "RFVNS0FMSU5FUw...base64_encrypted_password"
+}
 ```
 
 ## 🛡️ Segurança
 
-### Pontos Fortes
+### 🔒 Pontos Fortes
 
-- **RSA 4096 bits**: Padrão de segurança alto
-- **OAEP Padding**: Proteção contra ataques de padding
-- **SHA-256**: Hash criptográfico seguro
-- **Dupla proteção**: Chaves mestras + individuais
-- **Sem senhas em texto plano**: Tudo armazenado criptografado
+- **RSA 4096 bits**: Padrão militar de segurança
+- **OAEP Padding**: Proteção contra ataques oracle
+- **SHA-256 Hashing**: Algoritmo criptográfico moderno
+- **Separação de Chaves**: Chaves mestras isoladas das individuais
+- **Proteção Dupla**: Cada usuário tem proteção independente
+- **Sem Plaintext**: Nenhuma senha armazenada em texto claro
 
-### Considerações de Segurança
+### ⚠️ Considerações Importantes
 
-⚠️ **IMPORTANTE**: Este sistema é para fins educacionais e de desenvolvimento. Para uso em produção, considere:
+**Para Ambiente de Produção:**
 
-1. **Proteção da Chave Mestra**: A chave privada mestra deve ser protegida por senha
-2. **Armazenamento Seguro**: Use HSMs ou key vaults para chaves sensíveis
-3. **Backup Seguro**: Implemente backup criptografado das chaves
-4. **Rotação de Chaves**: Política de rotação regular
-5. **Auditoria**: Log de acessos e operações
-6. **Controle de Acesso**: Permissões rigorosas nos arquivos
+1. **Proteger Chave Mestra**:
+```python
+# Exemplo de chave mestra protegida
+encryption_algorithm=serialization.BestAvailableEncryption(b"master_password_ultra_forte")
+```
 
-### Recomendações de Produção
+2. **Backup Seguro**:
+```python
+import shutil
+import os
+
+def backup_keys(source_dir: str, backup_location: str):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_dir = f"{backup_location}/backup_{timestamp}"
+    shutil.copytree(source_dir, backup_dir)
+    # Criptografar backup adicional aqui
+```
+
+3. **Controle de Acesso**:
+```bash
+# Definir permissões restritivas
+chmod 600 chave_mestre_*.pem
+chmod 700 usuarios_chaves_*/
+```
+
+4. **Auditoria**:
+```python
+import logging
+
+logging.basicConfig(
+    filename='rsa_password_manager.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+def log_access(username: str, operation: str):
+    logging.info(f"User: {username}, Operation: {operation}")
+```
+
+### 🔐 Matriz de Segurança
+
+| Componente | Algoritmo | Tamanho | Proteção |
+|------------|-----------|---------|-----------|
+| Chave Mestra | RSA | 4096 bits | OAEP + SHA-256 |
+| Chave Usuário | RSA | 4096 bits | Password + PKCS8 |
+| Hash | SHA-256 | 256 bits | Cryptographic |
+| Padding | OAEP | - | Oracle-resistant |
+
+## 🧪 Testes
+
+### 🔍 Testes Integrados
+
+O sistema inclui testes automáticos de integridade:
 
 ```python
-# Exemplo de chave mestra protegida por senha
-private_pem = private_key.private_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PrivateFormat.PKCS8,
-    encryption_algorithm=serialization.BestAvailableEncryption(b"senha_muito_forte_aqui")
-)
+# Teste individual
+pm = RSAPasswordManager()
+pm.setup_system()
+success = pm.test_user_system('username')
+
+# Teste em lote
+for user in pm.list_users():
+    result = pm.test_user_system(user)
+    print(f"{user}: {'✅ OK' if result else '❌ ERRO'}")
 ```
 
-## 📝 Limitações
+### 🧪 Testes Personalizados
 
-1. **Tamanho das Senhas**: RSA tem limite de dados que pode criptografar diretamente
-2. **Performance**: Operações RSA são mais lentas que criptografia simétrica
-3. **Gerenciamento de Chaves**: Requer cuidado especial com a chave mestra
-4. **Escalabilidade**: Para muitos usuários, considere soluções híbridas
-5. **Dependência**: Perda da chave mestra = perda de todas as senhas
+```python
+def test_encryption_decryption():
+    """Testa ciclo completo de criptografia"""
+    pm = RSAPasswordManager()
+    pm.setup_system()
+    
+    # Criar usuário teste
+    test_config = [{'nome': 'test_user', 'senha': 'test_password_123'}]
+    keys_dir = pm.create_users_batch(test_config)
+    
+    # Verificar recuperação
+    recovered = pm.recover_user_password('test_user')
+    assert recovered == 'test_password_123'
+    
+    # Verificar carregamento de chave
+    private_key = pm.load_user_key('test_user')
+    assert private_key is not None
+    
+    print("✅ Todos os testes passaram!")
 
-## 🔄 Fluxograma do Sistema
+def test_performance():
+    """Testa performance do sistema"""
+    import time
+    
+    start_time = time.time()
+    
+    # Criar múltiplos usuários
+    users = [{'nome': f'user_{i}', 'senha': f'password_{i}'} 
+             for i in range(10)]
+    
+    pm = RSAPasswordManager()
+    pm.setup_system()
+    keys_dir = pm.create_users_batch(users)
+    
+    end_time = time.time()
+    print(f"⏱️ Criação de 10 usuários: {end_time - start_time:.2f}s")
 
+# Executar testes
+test_encryption_decryption()
+test_performance()
 ```
-[Usuário] → [Senha Original]
-    ↓
-[Chave Pública Mestra] → [Senha Criptografada] → [JSON File]
-    ↓
-[Senha Original] → [Proteção da Chave Privada Individual] → [PEM File]
-    ↓
-[Recuperação] → [Chave Privada Mestra] → [Senha Descriptografada]
-    ↓
-[Senha Descriptografada] → [Desbloquear Chave Individual] → [Uso]
+
+## 📊 Monitoramento
+
+### 📈 Métricas do Sistema
+
+```python
+def get_system_metrics(keys_directory: str) -> dict:
+    """Coleta métricas do sistema"""
+    pm = RSAPasswordManager()
+    
+    users = pm.list_users(keys_directory)
+    
+    metrics = {
+        'total_users': len(users),
+        'master_key_exists': os.path.exists('chave_mestre_private.pem'),
+        'directory_size': get_directory_size(keys_directory),
+        'last_access': get_last_access_time(keys_directory)
+    }
+    
+    return metrics
+
+def get_directory_size(directory: str) -> int:
+    """Calcula tamanho do diretório em bytes"""
+    total = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            total += os.path.getsize(filepath)
+    return total
 ```
 
 ## 🤝 Contribuição
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abra um Pull Request
+### 📋 Como Contribuir
+
+1. **Fork** o repositório
+2. **Clone** seu fork: `git clone <seu-fork>`
+3. **Crie** uma branch: `git checkout -b feature/nova-funcionalidade`
+4. **Implemente** suas mudanças
+5. **Teste** thoroughly: Execute todos os testes
+6. **Commit**: `git commit -m 'Add: nova funcionalidade'`
+7. **Push**: `git push origin feature/nova-funcionalidade`
+8. **Pull Request**: Abra um PR detalhado
+
+### 🎯 Guidelines de Desenvolvimento
+
+- **Type Hints**: Use tipagem completa em todas as funções
+- **Docstrings**: Documente métodos públicos
+- **Error Handling**: Trate exceções adequadamente
+- **Code Style**: Siga PEP 8
+- **Testes**: Inclua testes para novas funcionalidades
+- **Segurança**: Considere implicações de segurança
+
+### 🐛 Report de Bugs
+
+Ao reportar bugs, inclua:
+
+- **Sistema Operacional**
+- **Versão do Python**
+- **Versão da biblioteca `cryptography`**
+- **Código que reproduz o erro**
+- **Stacktrace completo**
+- **Comportamento esperado vs observado**
 
 ## 🆘 Suporte
 
-Para dúvidas ou problemas:
+- 📫 **Issues**: [GitHub Issues](https://github.com/seu-usuario/rsa-password-manager/issues)
+- 📖 **Documentação**: [cryptography.io](https://cryptography.io/en/latest/)
+- 💬 **Discussões**: [GitHub Discussions](https://github.com/seu-usuario/rsa-password-manager/discussions)
 
-1. Abra uma issue no GitHub
-2. Consulte a documentação da biblioteca `cryptography`
-3. Verifique os logs de erro do sistema
+## 🏆 Reconhecimentos
+
+- **cryptography**: Biblioteca principal para operações criptográficas
+- **Python Software Foundation**: Pela linguagem Python
+- **OpenSSL**: Backend criptográfico
 
 ---
 
-**⚠️ Aviso Legal**: Este código é fornecido apenas para fins educacionais. Para uso em produção, implemente todas as medidas de segurança necessárias e consulte especialistas em cibersegurança.
+**⚠️ Aviso Legal**: Este software é fornecido para fins educacionais e de desenvolvimento. Para uso em produção, implemente medidas de segurança adicionais e consulte especialistas em cibersegurança.
+
+**🔒 Nota de Segurança**: As chaves mestras são críticas para a segurança do sistema. Mantenha-as seguras e faça backups regulares.
