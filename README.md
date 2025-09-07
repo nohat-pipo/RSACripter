@@ -84,8 +84,8 @@ pip install cryptography typing
 ### Configuração
 
 ```bash
-git clone <seu-repositorio>
-cd rsa-password-manager
+git clone https://github.com/xBrunomvs/RSACripter.git
+cd RSACripter
 ```
 
 ## 💻 Guia de Uso
